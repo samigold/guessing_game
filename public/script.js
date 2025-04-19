@@ -30,6 +30,8 @@ const playersContainer = document.getElementById('playersContainer');
 const questionInputs = document.getElementById('questionInputs');
 const addQuestionBtn = document.getElementById('addQuestionBtn');
 const questionNumber = document.getElementById('questionNumber');
+const copyGameIdBtn = document.getElementById('copyGameId');
+const shareGameLinkBtn = document.getElementById('shareGameLink');
 
 let currentGameId = null;
 let isGameMaster = false;
@@ -43,7 +45,7 @@ createGameBtn.addEventListener('click', () => {
         return;
     }
     socket.emit('createGame', { playerName });
-    playerSetup.style.display = 'none';
+    playerSetup.classList.add('hide');
 });
 
 joinGameBtn.addEventListener('click', () => {
@@ -55,7 +57,7 @@ joinGameBtn.addEventListener('click', () => {
     }
     if (gameId) {
         socket.emit('joinGame', { gameId, playerName });
-        playerSetup.style.display = 'none';
+        playerSetup.classList.add('hide');
     }
 });
 
@@ -99,16 +101,100 @@ submitGuessBtn.addEventListener('click', () => {
     }
 });
 
+// Event Listeners for copying and sharing
+copyGameIdBtn.addEventListener('click', copyGameId);
+shareGameLinkBtn.addEventListener('click', shareGameLink);
+gameIdDisplay.addEventListener('click', copyGameId);
+
+// Check for game ID in URL when page loads
+window.addEventListener('load', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const gameId = urlParams.get('game');
+    if (gameId) {
+        gameIdInput.value = gameId;
+    }
+});
+
+// Copy and Share functions
+function copyGameId() {
+    if (!currentGameId) return;
+    
+    navigator.clipboard.writeText(currentGameId).then(() => {
+        showCopyFeedback('Game ID copied!');
+    }).catch(() => {
+        // Fallback for browsers that don't support clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = currentGameId;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showCopyFeedback('Game ID copied!');
+        } catch (err) {
+            showCopyFeedback('Failed to copy');
+        }
+        document.body.removeChild(textArea);
+    });
+}
+
+function shareGameLink() {
+    if (!currentGameId) return;
+    
+    const gameUrl = `${window.location.origin}?game=${currentGameId}`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'Join my Guessing Game!',
+            text: 'Click to join my game session!',
+            url: gameUrl
+        }).catch(() => {
+            copyToClipboard(gameUrl);
+        });
+    } else {
+        copyToClipboard(gameUrl);
+    }
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showCopyFeedback('Game link copied!');
+    }).catch(() => {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showCopyFeedback('Game link copied!');
+        } catch (err) {
+            showCopyFeedback('Failed to copy');
+        }
+        document.body.removeChild(textArea);
+    });
+}
+
+function showCopyFeedback(message) {
+    const feedback = document.createElement('div');
+    feedback.className = 'copy-feedback';
+    feedback.textContent = message;
+    document.body.appendChild(feedback);
+    
+    // Remove the feedback after animation completes
+    setTimeout(() => {
+        feedback.remove();
+    }, 2000);
+}
+
 // Socket event handlers
 socket.on('gameCreated', ({ gameId, isMaster }) => {
     currentGameId = gameId;
     isGameMaster = isMaster;
     gameIdDisplay.textContent = gameId;
-    gameInfo.style.display = 'block';
-    gameArea.style.display = 'block';
-    questionSection.style.display = 'block';
+    gameInfo.classList.remove('hide');
+    gameArea.classList.remove('hide');
+    questionSection.classList.remove('hide');
     if (isMaster) {
-        gameMasterControls.style.display = 'block';
+        gameMasterControls.classList.remove('hide');
         addMessage('Game created! Share this Game ID with other players: ' + gameId, 'system-message');
         addMessage('Add your questions and wait for at least 2 more players to join.', 'system-message');
         startGameBtn.disabled = true;
@@ -119,9 +205,9 @@ socket.on('gameJoined', ({ gameId, isMaster }) => {
     currentGameId = gameId;
     isGameMaster = isMaster;
     gameIdDisplay.textContent = gameId;
-    gameInfo.style.display = 'block';
-    gameArea.style.display = 'block';
-    questionSection.style.display = 'block';
+    gameInfo.classList.remove('hide');
+    gameArea.classList.remove('hide');
+    questionSection.classList.remove('hide');
     addMessage('You joined the game!', 'system-message');
     addMessage('Waiting for the game to start...', 'system-message');
 });
@@ -155,16 +241,16 @@ socket.on('gameStarted', ({ question }) => {
     questionNumber.textContent = `${currentQuestionCount}`;
     
     if (!isGameMaster) {
-        playerControls.style.display = 'block';
-        gameMasterControls.style.display = 'none';
+        playerControls.classList.remove('hide');
+        gameMasterControls.classList.add('hide');
         submitGuessBtn.disabled = false;
         guessInput.disabled = false;
         guessInput.value = '';
         attemptsLeft.textContent = '3';
         addMessage('Game started! Try to guess the answer.', 'system-message');
     } else {
-        gameMasterControls.style.display = 'none';
-        playerControls.style.display = 'none';
+        gameMasterControls.classList.add('hide');
+        playerControls.classList.add('hide');
         addMessage('Your question has been sent to the players!', 'system-message');
     }
 });
@@ -209,13 +295,13 @@ socket.on('gameEnded', ({ winner, finalScores, newMaster }) => {
     messages.appendChild(winnerAnnouncement);
     
     updatePlayersList(finalScores);
-    playerControls.style.display = 'none';
-    gameMasterControls.style.display = 'none';
+    playerControls.classList.add('hide');
+    gameMasterControls.classList.add('hide');
     isGameMaster = socket.id === newMaster;
     
     if (isGameMaster) {
         setTimeout(() => {
-            gameMasterControls.style.display = 'block';
+            gameMasterControls.classList.remove('hide');
             questionInputs.innerHTML = `
                 <div class="question-input-group">
                     <input type="text" class="questionInput" placeholder="Enter your question">
@@ -234,8 +320,8 @@ socket.on('newGameMaster', ({ masterId, masterName }) => {
     isGameMaster = socket.id === masterId;
     
     if (isGameMaster) {
-        gameMasterControls.style.display = 'block';
-        playerControls.style.display = 'none';
+        gameMasterControls.classList.remove('hide');
+        playerControls.classList.add('hide');
         questionInputs.innerHTML = `
             <div class="question-input-group">
                 <input type="text" class="questionInput" placeholder="Enter your question">
@@ -245,8 +331,8 @@ socket.on('newGameMaster', ({ masterId, masterName }) => {
         currentQuestionCount = 1;
         addMessage('You are now the game master. Create new questions!', 'system-message');
     } else {
-        playerControls.style.display = 'none';
-        gameMasterControls.style.display = 'none';
+        playerControls.classList.add('hide');
+        gameMasterControls.classList.add('hide');
         addMessage(`${masterName} is now the game master`, 'system-message');
     }
 });

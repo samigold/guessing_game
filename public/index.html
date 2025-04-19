@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#1a73e8">
+    <meta name="viewport" content="width=device-width, viewport-fit=cover">
+    <meta name="theme-color" content="#1a73e8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Guessing Game</title>
@@ -25,22 +26,35 @@
             </div>
         </div>
 
-        <div id="gameInfo" class="section" style="display: none;">
-            <p>Game ID: <span id="gameIdDisplay"></span></p>
+        <div id="gameInfo" class="section hide">
+            <div class="game-id-section">
+                <div class="game-id-container">
+                    <span>Game ID:</span>
+                    <span id="gameIdDisplay" title="Click to copy"></span>
+                </div>
+                <div class="share-buttons">
+                    <button class="copy-button" id="copyGameId">
+                        <span>📋 Copy</span>
+                    </button>
+                    <button class="share-button" id="shareGameLink">
+                        <span>🔗 Share</span>
+                    </button>
+                </div>
+            </div>
             <div id="playersList">
                 <h3>Players</h3>
                 <div id="playersContainer"></div>
             </div>
         </div>
 
-        <div id="gameArea" class="section" style="display: none;">
-            <div id="questionSection" style="display: none;">
+        <div id="gameArea" class="section hide">
+            <div id="questionSection" class="hide">
                 <div id="timerSection">
                     <div id="timerDisplay">Time left: <span id="timeLeft">60</span>s</div>
                 </div>
                 <h2>Question <span id="questionNumber"></span>:</h2>
                 <p id="questionDisplay"></p>
-                <div id="gameMasterControls" style="display: none;">
+                <div id="gameMasterControls" class="hide">
                     <div id="questionInputs">
                         <div class="question-input-group">
                             <input type="text" class="questionInput" placeholder="Enter your question">
@@ -50,7 +64,7 @@
                     <button id="addQuestionBtn">Add Another Question</button>
                     <button id="startGameBtn">Start Game</button>
                 </div>
-                <div id="playerControls" style="display: none;">
+                <div id="playerControls" class="hide">
                     <input type="text" id="guessInput" placeholder="Enter your guess">
                     <button id="submitGuessBtn">Submit Guess</button>
                     <p>Attempts left: <span id="attemptsLeft">3</span></p>

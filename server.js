@@ -41,7 +41,7 @@ io.on('connection', (socket) => {
 
     // Create game session
     socket.on('createGame', ({ playerName }) => {
-        const gameId = Math.random().toString(36).substring(2, 8);
+        const gameId = Math.random().toString(36).substring(2, 8).toLowerCase();
         const session = new GameSession(gameId, socket.id, playerName);
         gameSessions.set(gameId, session);
         socket.join(gameId);
@@ -51,20 +51,29 @@ io.on('connection', (socket) => {
 
     // Join game session
     socket.on('joinGame', ({ gameId, playerName }) => {
-        const session = gameSessions.get(gameId);
+        // Convert input gameId to lowercase for case-insensitive comparison
+        const normalizedGameId = gameId.toLowerCase();
+        // Find the game by comparing normalized IDs
+        const session = Array.from(gameSessions.entries()).find(
+            ([id]) => id.toLowerCase() === normalizedGameId
+        )?.[1];
+
         if (session && !session.isActive) {
             session.players.set(socket.id, { name: playerName, score: 0, attempts: 0 });
             socket.join(gameId);
             socket.emit('gameJoined', { gameId, isMaster: false });
             io.to(gameId).emit('updatePlayers', getPlayersData(session));
         } else {
-            socket.emit('error', 'Game not found or already in progress');
+            socket.emit('error', session ? 'Game is already in progress' : 'Game not found');
         }
     });
 
     // Add questions
     socket.on('addQuestions', ({ gameId, questions }) => {
-        const session = gameSessions.get(gameId);
+        const normalizedGameId = gameId.toLowerCase();
+        const session = Array.from(gameSessions.entries()).find(
+            ([id]) => id.toLowerCase() === normalizedGameId
+        )?.[1];
         if (session && socket.id === session.gameMaster && !session.isActive) {
             questions.forEach(q => session.addQuestion(q.question, q.answer));
             socket.emit('questionsAdded', { count: questions.length });
@@ -73,7 +82,10 @@ io.on('connection', (socket) => {
 
     // Start game
     socket.on('startGame', ({ gameId }) => {
-        const session = gameSessions.get(gameId);
+        const normalizedGameId = gameId.toLowerCase();
+        const session = Array.from(gameSessions.entries()).find(
+            ([id]) => id.toLowerCase() === normalizedGameId
+        )?.[1];
         if (session && socket.id === session.gameMaster && session.players.size > 2 && session.questions.length > 0) {
             session.isActive = true;
             const question = session.nextQuestion();
@@ -102,7 +114,10 @@ io.on('connection', (socket) => {
 
     // Handle guess
     socket.on('makeGuess', ({ gameId, guess }) => {
-        const session = gameSessions.get(gameId);
+        const normalizedGameId = gameId.toLowerCase();
+        const session = Array.from(gameSessions.entries()).find(
+            ([id]) => id.toLowerCase() === normalizedGameId
+        )?.[1];
         if (session && session.isActive) {
             const player = session.players.get(socket.id);
             const currentQuestion = session.getCurrentQuestion();
