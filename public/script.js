@@ -178,11 +178,21 @@ socket.on('timerUpdate', ({ timeLeft }) => {
 });
 
 socket.on('roundEnded', ({ winner, answer, scores }) => {
-    // Show the result message
-    const winMessage = winner.id === socket.id ? 
-        'You won this round!' : 
-        `${winner.name} won this round!`;
-    addMessage(winMessage + ` The answer was: ${answer}`, 'correct-answer');
+    // Create and show the popup
+    const popup = document.createElement('div');
+    popup.className = 'win-popup';
+    popup.textContent = winner.id === socket.id ? 
+        '🎉 You won this round!' : 
+        `🎉 ${winner.name} won this round!`;
+    document.body.appendChild(popup);
+
+    // Remove popup after animation
+    setTimeout(() => {
+        popup.remove();
+    }, 5000);
+    
+    // Add to message history
+    addMessage(`${winner.name} won this round! The answer was: ${answer}`, 'correct-answer');
     
     currentQuestionCount++;
     updatePlayersList(scores);
