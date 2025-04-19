@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guessing Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="playerSetup" class="section">
+            <h1>Guessing Game</h1>
+            <div id="nameInput">
+                <input type="text" id="playerNameInput" placeholder="Enter your name" required>
+            </div>
+            <div id="initialButtons">
+                <button id="createGameBtn">Create Game</button>
+                <div id="joinGameSection">
+                    <input type="text" id="gameIdInput" placeholder="Enter Game ID">
+                    <button id="joinGameBtn">Join Game</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="gameInfo" class="section" style="display: none;">
+            <p>Game ID: <span id="gameIdDisplay"></span></p>
+            <div id="playersList">
+                <h3>Players</h3>
+                <div id="playersContainer"></div>
+            </div>
+        </div>
+
+        <div id="gameArea" class="section" style="display: none;">
+            <div id="questionSection" style="display: none;">
+                <div id="timerSection">
+                    <div id="timerDisplay">Time left: <span id="timeLeft">60</span>s</div>
+                </div>
+                <h2>Question <span id="questionNumber"></span>:</h2>
+                <p id="questionDisplay"></p>
+                <div id="gameMasterControls" style="display: none;">
+                    <div id="questionInputs">
+                        <div class="question-input-group">
+                            <input type="text" class="questionInput" placeholder="Enter your question">
+                            <input type="text" class="answerInput" placeholder="Enter the answer">
+                        </div>
+                    </div>
+                    <button id="addQuestionBtn">Add Another Question</button>
+                    <button id="startGameBtn">Start Game</button>
+                </div>
+                <div id="playerControls" style="display: none;">
+                    <input type="text" id="guessInput" placeholder="Enter your guess">
+                    <button id="submitGuessBtn">Submit Guess</button>
+                    <p>Attempts left: <span id="attemptsLeft">3</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="gameMessages" class="section">
+            <div id="messages"></div>
+        </div>
+
+        <div id="scoreboard" class="section">
+            <h2>Scoreboard</h2>
+            <div id="scores"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
