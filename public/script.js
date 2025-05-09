@@ -37,6 +37,118 @@ let currentGameId = null;
 let isGameMaster = false;
 let currentQuestionCount = 1;
 
+// Background Animation Setup
+function createFloatingElements() {
+    const animatedBackground = document.getElementById('animatedBackground');
+    const elementCount = window.innerWidth < 768 ? 15 : 30; // Fewer elements on mobile
+    const shapes = ['⭐', '❓', '💭', '🎮', '🎯', '💡', '🎲', '✨', '❔', '🧩', '💬'];
+    
+    // Clear existing elements
+    animatedBackground.innerHTML = '';
+    
+    // Generate question marks and shapes with different animations
+    for (let i = 0; i < elementCount; i++) {
+        // Random properties
+        const isShape = Math.random() > 0.5;
+        const size = Math.random() * 25 + 15; // 15-40px
+        const leftPos = Math.random() * 100; // 0-100%
+        const delay = Math.random() * 10; // 0-10s delay
+        const duration = Math.random() * 10 + 15; // 15-25s animation duration
+        
+        // Create element
+        const element = document.createElement('div');
+        
+        if (isShape) {
+            // Create shape element (emoji or geometric shape)
+            element.className = 'shape';
+            
+            if (Math.random() > 0.5) {
+                // Use emoji
+                element.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+                element.style.fontSize = `${size}px`;
+            } else {
+                // Create geometric shape
+                const shapeType = Math.floor(Math.random() * 3);
+                element.style.width = `${size}px`;
+                element.style.height = `${size}px`;
+                
+                // Random color from our theme
+                const colors = [
+                    'var(--primary-color)', 
+                    'var(--success-color)', 
+                    'var(--warning-color)'
+                ];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                element.style.backgroundColor = color;
+                element.style.opacity = '0.2';
+                
+                // Apply different shapes
+                if (shapeType === 0) {
+                    element.style.borderRadius = '50%'; // Circle
+                } else if (shapeType === 1) {
+                    element.style.transform = 'rotate(45deg)'; // Diamond
+                }
+                // Default is square
+            }
+            
+            // Apply different animation
+            if (Math.random() > 0.5) {
+                element.style.animation = `floatSideways ${duration}s linear ${delay}s infinite`;
+            } else {
+                element.style.animation = `float ${duration}s linear ${delay}s infinite`;
+            }
+        } else {
+            // Create question mark
+            element.className = 'question-mark';
+            element.textContent = '?';
+            element.style.fontSize = `${size}px`;
+            element.style.opacity = '0.2';
+            element.style.color = `var(--question-mark-color-${Math.ceil(Math.random() * 3)})`;
+            element.style.animation = `float ${duration}s linear ${delay}s infinite`;
+            
+            // Add secondary animation
+            const secondaryAnimation = Math.floor(Math.random() * 3);
+            if (secondaryAnimation === 0) {
+                element.style.animation += `, wobble ${Math.random() * 2 + 3}s ease-in-out infinite`;
+            } else if (secondaryAnimation === 1) {
+                element.style.animation += `, pulse ${Math.random() * 2 + 2}s ease-in-out infinite`;
+            } else {
+                element.style.animation += `, spin ${Math.random() * 5 + 5}s linear infinite`;
+            }
+        }
+        
+        // Set position
+        element.style.left = `${leftPos}%`;
+        // Add some randomness to the bottom position to create staggering
+        element.style.bottom = `${Math.random() * 30 - 50}px`; 
+        
+        // Add to the background
+        animatedBackground.appendChild(element);
+    }
+    
+    // Add interactive elements that follow cursor with parallax effect
+    document.addEventListener('mousemove', (e) => {
+        const mouseX = e.clientX / window.innerWidth;
+        const mouseY = e.clientY / window.innerHeight;
+        
+        const elements = document.querySelectorAll('.shape, .question-mark');
+        elements.forEach((el, index) => {
+            // Only affect some elements for performance
+            if (index % 3 === 0) {
+                const moveFactor = (index % 5) * 0.01;
+                const translateX = (mouseX - 0.5) * 20 * moveFactor;
+                const translateY = (mouseY - 0.5) * 20 * moveFactor;
+                
+                el.style.transform = `translate(${translateX}px, ${translateY}px)`;
+            }
+        });
+    });
+}
+
+// Initialize animations when window loads or resizes
+window.addEventListener('load', createFloatingElements);
+window.addEventListener('resize', createFloatingElements);
+
 // Event Listeners
 createGameBtn.addEventListener('click', () => {
     const playerName = playerNameInput.value.trim();
@@ -193,6 +305,8 @@ socket.on('gameCreated', ({ gameId, isMaster }) => {
     gameInfo.classList.remove('hide');
     gameArea.classList.remove('hide');
     questionSection.classList.remove('hide');
+    messages.classList.remove('hide'); // Show messages when game is created
+    scoreboard.classList.remove('hide'); // Show scoreboard when game is created
     if (isMaster) {
         gameMasterControls.classList.remove('hide');
         addMessage('Game created! Share this Game ID with other players: ' + gameId, 'system-message');
@@ -208,6 +322,8 @@ socket.on('gameJoined', ({ gameId, isMaster }) => {
     gameInfo.classList.remove('hide');
     gameArea.classList.remove('hide');
     questionSection.classList.remove('hide');
+    messages.classList.remove('hide'); // Show messages when joining game
+    scoreboard.classList.remove('hide'); // Show scoreboard when joining game
     addMessage('You joined the game!', 'system-message');
     addMessage('Waiting for the game to start...', 'system-message');
 });
@@ -388,6 +504,6 @@ function updatePlayersList(players) {
         scores.appendChild(scoreDiv);
     });
 
-    // Make scoreboard visible
-    scoreboard.style.display = 'block';
+    // Show scoreboard using CSS class
+    scoreboard.classList.remove('hide');
 }
